@@ -94,7 +94,6 @@ class SakClass:
 class Player:
     def __init__(self):
         self.score = 0
-        self.name = "none"
         self.letters = []
 
     def __repr__(self):
@@ -104,8 +103,8 @@ class Player:
 class Human(Player):
     def __init__(self, sak):
         super().__init__()
-        self.name = "Human"
         self.letters = SakClass.getletters(sak, 7)
+
 
     def __repr__(self):
         print("human repr")
@@ -175,7 +174,6 @@ class Human(Player):
 class Computer(Player):
     def __init__(self, sak):
         super().__init__()
-        self.name = "Computer"
         self.letters = SakClass.getletters(sak, 7)
 
     def __repr__(self):
@@ -245,12 +243,8 @@ class Game:
                     line = line.lower()
                     word = word.strip(string.punctuation + string.digits)
                     if word:
-                        if word in self.wordcount:
-                            points = Game.calcPoints(self, word)
-                            self.wordcount[word] += points
-                        else:
-                            points = Game.calcPoints(self, word)
-                            self.wordcount[word] = points
+                        points = Game.calcPoints(self, word)
+                        self.wordcount[word] = points
         choice = Game.printMenu(self)
         if choice == "1":
             print("1")
@@ -328,5 +322,4 @@ class Game:
                     ok = 0
             if ok == 0:
                 return ok
-        print(ok)
         return ok
