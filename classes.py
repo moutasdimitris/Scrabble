@@ -40,7 +40,6 @@ class SakClass:
             self.sak.append(tile)
 
     def initialize_bag(self):
-        global LETTERS
         self.add_to_bag("Α", 12)
         self.add_to_bag("Β", 1)
         self.add_to_bag("Γ", 2)
@@ -69,8 +68,8 @@ class SakClass:
         shuffle(self.sak)
 
     def putbackletters(self, letters):
-        for c in letters:
-            self.sak.append(c)
+        for k, v in letters:
+            SakClass.add_to_bag(self, k, 1)
         shuffle(self.sak)
 
     def randomize_sak(self):
@@ -122,8 +121,10 @@ class Human(Player):
                     if word != "p" and word != "q":
                         itsOK = Game.checkTheWord(self, word, self.letters)
                         if itsOK == 1:
+                            found = 0
                             for k, v in wordcount.items():
                                 if word == k:
+                                    found = 1
                                     self.score += v
                                     print("Αποδεκτή λέξη - Βαθμοί:", v, "- Σκορ:", self.score)
                                     self.letters = Game.removeUsedLetters(self, word, self.letters, sk)
@@ -133,6 +134,9 @@ class Human(Player):
                                         print("---------------------------------------")
                                         if enter == "":
                                             break
+                            if found == 0:
+                                print("Δεν υπάρχει τέτοια λέξη ξαναπροσπάθησε:")
+                                Human.play(self, wordcount, sk)
                             break
                     elif word == "p":
                         tempLetters = self.letters
@@ -146,8 +150,10 @@ class Human(Player):
                     elif word == "q":
                         return 101
             else:
+                found = 0
                 for k, v in wordcount.items():
                     if word == k:
+                        found = 1
                         self.score += v
                         print("Αποδεκτή λέξη - Βαθμοί:", v, "- Σκορ:", self.score)
                         self.letters = Game.removeUsedLetters(self, word, self.letters, sk)
@@ -157,6 +163,10 @@ class Human(Player):
                             print("---------------------------------------")
                             if enter == "":
                                 break
+                if found == 0:
+                    print("Δεν υπάρχει τέτοια λέξη ξαναπροσπάθησε:")
+                    Human.play(self, wordcount, sk)
+
         elif word == "p":
             tempLetters = self.letters
             s = sk.getletters(7)
@@ -179,7 +189,8 @@ class Computer(Player):
     def __repr__(self):
         print("comp repr")
 
-    def play(self, sak, wordcount, sk, level):
+    def play(self, wordcount, sk, level):
+        print(sk.sak)
         print("Στο σακουλάκι:", len(sk.sak), "- Παίζει Ο Η/Υ:")
         print("Γράμματα Η/Υ:", self.letters)
         if level == "1":
@@ -188,6 +199,8 @@ class Computer(Player):
             p = Computer.minLettersAlg(self, wordcount, 8, 2, -1, False)
         else:
             p = Computer.minLettersAlg(self, wordcount, 2, 8, 1, True)
+        if p == 101:
+            return 101
         for k, v in p:
             Game.removeUsedLetters(self, k, self.letters, sk)
             self.score += v
@@ -198,7 +211,7 @@ class Computer(Player):
         wordArray = []
         permut = []
         let = []
-        max = []
+        maxVal = []
         for k, v in self.letters:
             let.append(k)
 
@@ -207,17 +220,21 @@ class Computer(Player):
             for j in perm:
                 word = ''.join(str(elem) for elem in j)
                 permut.append((word, Game.calcPoints(self, word)))
+        found = 0
         for k, v in permut:
             for k1, v1 in wordcount.items():
                 if k == k1:
+                    found = 1
                     wordArray.append((k, v))
                     if not isSmart:
                         return wordArray
+        if found == 0:
+            return 101
         maxV = Computer.findMax(self, wordArray)
         for k, v in wordArray:
             if v == maxV:
-                max.append((k, v))
-                return max
+                maxVal.append((k, v))
+                return maxVal
 
     def findMax(self, words):
         s = max(x[1] for x in words)
@@ -280,7 +297,7 @@ class Game:
     def run(self, wordcount):
         while True:
             codeH = self.human.play(wordcount, self.sak)
-            codeC = self.computer.play(self.sak.sak, wordcount, self.sak, self.level)
+            codeC = self.computer.play(wordcount, self.sak, self.level)
 
             if codeH == 101 or codeC == 101:
                 break
