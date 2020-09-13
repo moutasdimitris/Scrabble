@@ -120,6 +120,7 @@ class Human(Player):
                     print("Διαθέσιμα Γράμματα:", self.letters)
                     word1 = input("Τα γράμματα δεν ταιριάζουν με αυτά που έχεις δώσε ξανά:")
                     if word1 != "p" and word1 != "q":
+                        print("im in 1")
                         itsOK = Game.checkTheWord(self, word1, self.letters)
                         if itsOK == 1:
                             found = 0
@@ -140,6 +141,7 @@ class Human(Player):
                                 Human.play(self, wordcount, sk)
                             break
                     elif word1 == "p":
+                        print("im in", word1)
                         tempLetters = self.letters
                         s = sk.getletters(7)
                         if s != 102:
@@ -149,7 +151,9 @@ class Human(Player):
                         sk.putbackletters(tempLetters)
                         print("Διαθέσιμα Γράμματα:", self.letters)
                         print("---------------------------------------")
+                        break
                     elif word1 == "q":
+                        print("im in 3 ",word1)
                         return 101
             else:
                 found = 0
@@ -389,8 +393,7 @@ class Game:
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
         except:  # handle other exceptions such as attribute errors
-            print("Unexpected error:", sys.exc_info()[0])
-            print("Κάτι πήγε στραβά")
+            print("Κάτι πήγε στραβά:", sys.exc_info()[0])
 
     def end(self):
         print("Αντίο!")
