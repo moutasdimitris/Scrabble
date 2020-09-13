@@ -1,7 +1,10 @@
 import random
+import sys
 import string
 from random import shuffle
 from itertools import permutations
+import json
+from datetime import datetime
 
 LETTERS = {"Α": 1,
            "Β": 8,
@@ -65,17 +68,16 @@ class SakClass:
         self.add_to_bag("Ψ", 1)
         self.add_to_bag("Ω", 3)
         self.add_to_bag(" ", 2)
-        shuffle(self.sak)
 
     def putbackletters(self, letters):
         for k, v in letters:
             SakClass.add_to_bag(self, k, 1)
-        shuffle(self.sak)
 
     def randomize_sak(self):
         SakClass.initialize_bag(self)
 
     def getletters(self, num):
+        shuffle(self.sak)
         letters = []
         if num <= len(self.sak):
             for i in range(0, num):
@@ -200,12 +202,12 @@ class Computer(Player):
     def __init__(self, sak):
         super().__init__()
         self.letters = SakClass.getletters(sak, 7)
+        self.sak = sak
 
     def __repr__(self):
         print("comp repr")
 
     def play(self, wordcount, sk, level):
-        print(sk.sak)
         print("Στο σακουλάκι:", len(sk.sak), "- Παίζει Ο Η/Υ:")
         print("Γράμματα Η/Υ:", self.letters)
         if level == "1":
@@ -227,9 +229,18 @@ class Computer(Player):
         permut = []
         let = []
         maxVal = []
+        con = True
         for k, v in self.letters:
-            let.append(k)
-
+            if k == " ":
+                SakClass.putbackletters(self.sak, self.letters)
+                self.letters = SakClass.getletters(self.sak, 7)
+                print("Νέα Γράμματα Η/Υ:", self.letters)
+                con = False
+                break
+            else:
+                let.append(k)
+        if not con:
+            Computer.minLettersAlg(self, wordcount, start, stop, step, isSmart)
         for i in range(start, stop, step):
             perm = permutations(let, i)
             for j in perm:
@@ -279,7 +290,7 @@ class Game:
                         self.wordcount[word] = points
         choice = Game.printMenu(self)
         if choice == "1":
-            print("1")
+            Game.printPrevious(self)
         elif choice == "2":
             print("ΔΙΑΛΕΞΕ ΑΛΓΟΡΙΘΜΟ:")
             print("1: Min Letters")
@@ -293,8 +304,20 @@ class Game:
         elif choice == "3":
             Game.run(self, self.wordcount)
         else:
-            print("q")
             Game.end(self)
+
+    def printPrevious(self):
+        try:
+            with open('history.txt') as json_file:
+                data = json.load(json_file)
+                for p in data['match']:
+                    print('Your score: ', p['You'])
+                    print('Computer score: ', p['Computer'])
+                    print('Date/Time: ', p['Date/Time'])
+                    print('')
+        except FileNotFoundError:
+            print("Δεν υπάρχει ιστορικό. Παίξτε παιχνίδια και αυτά θα καταγραφούν αυτόματα στο ιστορικό. Καλή "
+                  "διασκέδαση!")
 
     def printMenu(self):
         print("***** SCRABBLE *****")
@@ -314,6 +337,15 @@ class Game:
             codeH = self.human.play(wordcount, self.sak)
             codeC = self.computer.play(wordcount, self.sak, self.level)
             if codeH == 101 or codeC == 101:
+                print("Τελικό Αποτέλεσμα:")
+                print("Εσύ:", self.human.score, " Η/Υ:", self.computer.score)
+                if self.human.score > self.computer.score:
+                    print("Νίκησες!!!")
+                elif self.human.score < self.computer.score:
+                    print("Έχασες.")
+                else:
+                    print("Ισοπαλία.")
+                Game.writeInfosToFile(self)
                 break
 
     def removeUsedLetters(self, word, letters, sak):
@@ -342,8 +374,27 @@ class Game:
 
         return letters
 
+    def writeInfosToFile(self):
+        try:
+            data = {}
+            now = datetime.now()
+            data['match'] = []
+            data['match'].append({
+                'You': self.human.score,
+                'Computer': self.computer.score,
+                'Date/Time': now.strftime("%d/%m/%Y %H:%M:%S")
+            })
+            with open('history.txt', 'w') as outfile:
+                json.dump(data, outfile)
+        except IOError as e:
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        except:  # handle other exceptions such as attribute errors
+            print("Unexpected error:", sys.exc_info()[0])
+            print("Κάτι πήγε στραβά")
+
     def end(self):
-        print("ending the game")
+        print("Αντίο!")
+        quit()
 
     def calcPoints(self, word):
         count = 0
