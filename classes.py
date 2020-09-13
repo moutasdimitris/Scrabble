@@ -104,7 +104,6 @@ class Human(Player):
         super().__init__()
         self.letters = SakClass.getletters(sak, 7)
 
-
     def __repr__(self):
         print("human repr")
 
@@ -117,17 +116,17 @@ class Human(Player):
             if itsOK == 0:
                 while True:
                     print("Διαθέσιμα Γράμματα:", self.letters)
-                    word = input("Τα γράμματα δεν ταιριάζουν με αυτά που έχεις δώσε ξανά:")
-                    if word != "p" and word != "q":
-                        itsOK = Game.checkTheWord(self, word, self.letters)
+                    word1 = input("Τα γράμματα δεν ταιριάζουν με αυτά που έχεις δώσε ξανά:")
+                    if word1 != "p" and word1 != "q":
+                        itsOK = Game.checkTheWord(self, word1, self.letters)
                         if itsOK == 1:
                             found = 0
                             for k, v in wordcount.items():
-                                if word == k:
+                                if word1 == k:
                                     found = 1
                                     self.score += v
                                     print("Αποδεκτή λέξη - Βαθμοί:", v, "- Σκορ:", self.score)
-                                    self.letters = Game.removeUsedLetters(self, word, self.letters, sk)
+                                    self.letters = Game.removeUsedLetters(self, word1, self.letters, sk)
                                     print(self.letters)
                                     while True:
                                         enter = input("Enter για Συνέχεια")
@@ -138,7 +137,7 @@ class Human(Player):
                                 print("Δεν υπάρχει τέτοια λέξη ξαναπροσπάθησε:")
                                 Human.play(self, wordcount, sk)
                             break
-                    elif word == "p":
+                    elif word1 == "p":
                         tempLetters = self.letters
                         s = sk.getletters(7)
                         if s != 102:
@@ -147,15 +146,17 @@ class Human(Player):
                             return 101
                         sk.putbackletters(tempLetters)
                         print("Διαθέσιμα Γράμματα:", self.letters)
-                    elif word == "q":
+                        print("---------------------------------------")
+                    elif word1 == "q":
                         return 101
             else:
                 found = 0
                 for k, v in wordcount.items():
                     if word == k:
                         found = 1
-                        self.score += v
-                        print("Αποδεκτή λέξη - Βαθμοί:", v, "- Σκορ:", self.score)
+                        score = Human.calcPoints(self, word)
+                        self.score += score
+                        print("Αποδεκτή λέξη - Βαθμοί:", score, "- Σκορ:", self.score)
                         self.letters = Game.removeUsedLetters(self, word, self.letters, sk)
                         print(self.letters)
                         while True:
@@ -179,6 +180,20 @@ class Human(Player):
             print("---------------------------------------")
         elif word == "q":
             return 101
+
+    def calcPoints(self, word):
+        count = 0
+        c = self.letters.copy()
+        x = list(word)
+        for w in x:
+            p = 0
+            for d, l in c:
+                if d == w:
+                    c.pop(p)
+                    count += LETTERS.get(w)
+                    break
+                p += 1
+        return count
 
 
 class Computer(Player):
@@ -298,21 +313,33 @@ class Game:
         while True:
             codeH = self.human.play(wordcount, self.sak)
             codeC = self.computer.play(wordcount, self.sak, self.level)
-
             if codeH == 101 or codeC == 101:
                 break
 
     def removeUsedLetters(self, word, letters, sak):
         x = list(word)
+        counter = 0
+        t = len(x)
         for i in x:
             p = 0
             for k, v in letters:
                 if i == k:
-                    del letters[p]
+                    letters.pop(p)
+                    t -= 1
                     break
                 p += 1
+
+        for k1, v1 in letters:
+            if k1 == " " and t == 1:
+                letters.pop(counter)
+                break
+            elif k1 == " " and t == 2:
+                letters.pop(counter)
+                t -= 1
+            counter += 1
         if len(letters) < 7:
             letters += sak.getletters(7 - len(letters))
+
         return letters
 
     def end(self):
@@ -325,18 +352,24 @@ class Game:
             for d in LETTERS:
                 if d == w:
                     count += LETTERS.get(w)
+                    break
         return count
 
     def checkTheWord(self, word, letters):
         x = list(word)
+        let = letters.copy()
         ok = 0
+        z = len(x)
         for c in x:
-            for k, v in letters:
+            i = -1
+            for k, v in let:
+                i += 1
                 if c == k:
                     ok = 1
+                    del let[i]
+                    z -= 1
                     break
-                else:
-                    ok = 0
-            if ok == 0:
-                return ok
+        if z != 0:
+            if " " in let[1]:
+                ok = 1
         return ok
