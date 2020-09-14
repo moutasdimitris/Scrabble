@@ -1,18 +1,13 @@
 import classes
 
-
-def guidelines():
-    '''
-    gbgfbfgb
-    :return:
-    '''
-    print(guidelines().__doc__)
-    return None
-
-
-def start_game():
+if __name__ == "__main__":
     classes.Game().setup()
 
 
-if __name__ == "__main__":
-    start_game()
+def guidelines():
+    """
+    ksfkosfmkksmflksmfkvsklfvs
+    Returns:
+
+    """
+    pass
