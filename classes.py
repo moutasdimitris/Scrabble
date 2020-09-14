@@ -165,14 +165,13 @@ class Human(Player):
         print("Στο σακουλάκι:", len(sk.sak), "- Παίζεις:")
         print("Διαθέσιμα Γράμματα:", self.letters)
         word = input("Λέξη:")
-        if word != "p" and word != "q":
+        if word != "p" and word != "q" and word != "":
             itsOK = Game.checkTheWord(self, word, self.letters)
             if itsOK == 0:
                 while True:
                     print("Διαθέσιμα Γράμματα:", self.letters)
                     word1 = input("Τα γράμματα δεν ταιριάζουν με αυτά που έχεις δώσε ξανά:")
-                    if word1 != "p" and word1 != "q":
-                        print("im in 1")
+                    if word1 != "p" and word1 != "q" and word1 != "":
                         itsOK = Game.checkTheWord(self, word1, self.letters)
                         if itsOK == 1:
                             found = 0
@@ -181,7 +180,10 @@ class Human(Player):
                                     found = 1
                                     self.score += v
                                     print("Αποδεκτή λέξη - Βαθμοί:", v, "- Σκορ:", self.score)
+
                                     self.letters = Game.removeUsedLetters(self, word1, self.letters, sk)
+                                    if self.letters == 101:
+                                        return 101
                                     print(self.letters)
                                     while True:
                                         enter = input("Enter για Συνέχεια")
@@ -192,8 +194,7 @@ class Human(Player):
                                 print("Δεν υπάρχει τέτοια λέξη ξαναπροσπάθησε:")
                                 Human.play(self, wordcount, sk)
                             break
-                    elif word1 == "p":
-                        print("im in", word1)
+                    elif word1 == "p" or word1 == "":
                         tempLetters = self.letters
                         s = sk.getletters(7)
                         if s != 102:
@@ -205,7 +206,6 @@ class Human(Player):
                         print("---------------------------------------")
                         break
                     elif word1 == "q":
-                        print("im in 3 ", word1)
                         return 101
             else:
                 found = 0
@@ -216,6 +216,8 @@ class Human(Player):
                         self.score += score
                         print("Αποδεκτή λέξη - Βαθμοί:", score, "- Σκορ:", self.score)
                         self.letters = Game.removeUsedLetters(self, word, self.letters, sk)
+                        if self.letters == 101:
+                            return 101
                         print(self.letters)
                         while True:
                             enter = input("Enter για Συνέχεια")
@@ -225,8 +227,8 @@ class Human(Player):
                 if found == 0:
                     print("Δεν υπάρχει τέτοια λέξη ξαναπροσπάθησε:")
                     Human.play(self, wordcount, sk)
-
         elif word == "p" or word == "":
+            print(word == "")
             tempLetters = self.letters
             s = sk.getletters(7)
             if s != 102:
@@ -299,7 +301,9 @@ class Computer(Player):
         if p == 101:
             return 101
         for k, v in p:
-            Game.removeUsedLetters(self, k, self.letters, sk)
+            s = Game.removeUsedLetters(self, k, self.letters, sk)
+            if s == 101:
+                return 101
             self.score += v
             print("Λέξη Η/Υ:", k, ",", "Βαθμοί:", v, "Σκορ Η/Υ:", self.score)
             print("---------------------------------------")
@@ -373,8 +377,8 @@ class Game:
         9)writeJSON(self, data, filename="history.json") -> βοηθητική συνάρτηση η οποία αποθηκεύει τα data στο filename.
         10)end(self) -> τερματίζει το παιχνίδι.
         11)calcPoints(self, word) -> υπολογίζει τους πόντους της λέξης word.
-        12)checkTheWord(self, word, letters) -> τσεκάρει εάν η λέξη που έδωσε ο χρήστης αποτελείται από γράμματα που έχει
-        ο ίδιος στο letters.
+        12)checkTheWord(self, word, letters) -> τσεκάρει εάν η λέξη που έδωσε ο χρήστης αποτελείται από γράμματα που
+        έχει ο ίδιος στο letters.
 
     """
     def __init__(self):
@@ -482,9 +486,10 @@ class Game:
                 letters.pop(counter)
                 t -= 1
             counter += 1
-        if len(letters) < 7:
+        if len(letters) < 7 and len(sak.sak) > len(letters):
             letters += sak.getletters(7 - len(letters))
-
+        else:
+            return 101
         return letters
 
     def writeInfosToFile(self):
