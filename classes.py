@@ -387,7 +387,6 @@ class Game:
         try:
             now = datetime.now()
             if path.exists("history.json"):
-                print("exist")
                 with open("history.json") as outfile:
                     data = {
                         'You': self.human.score,
