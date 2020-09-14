@@ -1,5 +1,6 @@
 import random
-import sys
+import os.path
+from os import path
 import string
 from random import shuffle
 from itertools import permutations
@@ -34,6 +35,10 @@ LETTERS = {"Α": 1,
 
 
 class SakClass:
+    '''
+    sddfdfdf
+    '''
+
     def __init__(self):
         self.sak = []
         self.initialize_bag()
@@ -153,7 +158,7 @@ class Human(Player):
                         print("---------------------------------------")
                         break
                     elif word1 == "q":
-                        print("im in 3 ",word1)
+                        print("im in 3 ", word1)
                         return 101
             else:
                 found = 0
@@ -312,13 +317,13 @@ class Game:
 
     def printPrevious(self):
         try:
-            with open('history.txt') as json_file:
+            with open('history.json') as json_file:
                 data = json.load(json_file)
-                for p in data['match']:
+                for p in data['matches']:
                     print('Your score: ', p['You'])
                     print('Computer score: ', p['Computer'])
                     print('Date/Time: ', p['Date/Time'])
-                    print('')
+                    print('--------------------------------')
         except FileNotFoundError:
             print("Δεν υπάρχει ιστορικό. Παίξτε παιχνίδια και αυτά θα καταγραφούν αυτόματα στο ιστορικό. Καλή "
                   "διασκέδαση!")
@@ -380,20 +385,35 @@ class Game:
 
     def writeInfosToFile(self):
         try:
-            data = {}
             now = datetime.now()
-            data['match'] = []
-            data['match'].append({
-                'You': self.human.score,
-                'Computer': self.computer.score,
-                'Date/Time': now.strftime("%d/%m/%Y %H:%M:%S")
-            })
-            with open('history.txt', 'w') as outfile:
-                json.dump(data, outfile)
+            if path.exists("history.json"):
+                print("exist")
+                with open("history.json") as outfile:
+                    data = {
+                        'You': self.human.score,
+                        'Computer': self.computer.score,
+                        'Date/Time': now.strftime("%d/%m/%Y %H:%M:%S")
+                    }
+                    previousData = json.load(outfile)
+                    temp = previousData['matches']
+                    temp.append(data)
+                    Game.writeJSON(self, previousData)
+            else:
+                data = {}
+                data['matches'] = []
+                data['matches'].append({
+                    'You': self.human.score,
+                    'Computer': self.computer.score,
+                    'Date/Time': now.strftime("%d/%m/%Y %H:%M:%S")
+                })
+                Game.writeJSON(self, data)
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        except:  # handle other exceptions such as attribute errors
-            print("Κάτι πήγε στραβά:", sys.exc_info()[0])
+
+    def writeJSON(self, data, filename="history.json"):
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+            f.close()
 
     def end(self):
         print("Αντίο!")
